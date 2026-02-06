@@ -1,0 +1,140 @@
+{{- if .Values.frontend.enabled | default true }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-app.fullname" . }}-frontend
+  labels:
+    {{- include "todo-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: todo-app
+  annotations:
+    deployment.kubernetes.io/revision: {{ .Release.Revision | quote }}
+    meta.helm.sh/release-name: {{ .Release.Name | quote }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace | quote }}
+    {{- if .Values.frontend.annotations }}
+    {{- toYaml .Values.frontend.annotations | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  {{- if .Values.frontend.strategy }}
+  strategy:
+    {{- toYaml .Values.frontend.strategy | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "todo-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      annotations:
+        checksum/values: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+        {{- if .Values.frontend.podAnnotations }}
+        {{- toYaml .Values.frontend.podAnnotations | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "todo-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: todo-app
+        {{- if .Values.frontend.podLabels }}
+        {{- toYaml .Values.frontend.podLabels | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.frontend.priorityClassName }}
+      priorityClassName: {{ .Values.frontend.priorityClassName }}
+      {{- end }}
+      {{- if .Values.frontend.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.frontend.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end }}
+      {{- else }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.frontend.hostAliases }}
+      hostAliases:
+        {{- toYaml .Values.frontend.hostAliases | nindent 6 }}
+      {{- end }}
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: API_URL
+              value: {{ .Values.frontend.env.API_URL | quote }}
+            {{- if .Values.frontend.extraEnv }}
+            {{- toYaml .Values.frontend.extraEnv | nindent 12 }}
+            {{- end }}
+          {{- if .Values.frontend.envFrom }}
+          envFrom:
+            {{- toYaml .Values.frontend.envFrom | nindent 12 }}
+          {{- end }}
+          {{- if .Values.frontend.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.frontend.lifecycle | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            {{- if .Values.frontend.livenessProbe }}
+            {{- toYaml .Values.frontend.livenessProbe | nindent 12 }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            {{- if .Values.frontend.readinessProbe }}
+            {{- toYaml .Values.frontend.readinessProbe | nindent 12 }}
+            {{- end }}
+          {{- if .Values.frontend.startupProbe }}
+          startupProbe:
+            {{- toYaml .Values.frontend.startupProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          {{- if .Values.frontend.securityContext }}
+          securityContext:
+            {{- toYaml .Values.frontend.securityContext | nindent 12 }}
+          {{- end }}
+      {{- if .Values.frontend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.frontend.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.affinity }}
+      affinity:
+        {{- toYaml .Values.frontend.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.tolerations }}
+      tolerations:
+        {{- toYaml .Values.frontend.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.frontend.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.serviceAccountName }}
+      serviceAccountName: {{ .Values.frontend.serviceAccountName }}
+      {{- end }}
+      {{- if .Values.frontend.podSecurityContext }}
+      securityContext:
+        {{- toYaml .Values.frontend.podSecurityContext | nindent 8 }}
+      {{- end }}
+{{- end }}

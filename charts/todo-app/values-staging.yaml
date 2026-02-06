@@ -1,0 +1,29 @@
+# Staging environment values
+global:
+  env: "staging"
+  logLevel: "info"
+  enableDebug: false
+
+frontend:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: "300m"
+      memory: "384Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+backend:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: "750m"
+      memory: "768Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+
+pdb:
+  enabled: true
+  minAvailable: 1

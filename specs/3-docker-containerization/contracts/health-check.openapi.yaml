@@ -1,0 +1,119 @@
+openapi: 3.0.0
+info:
+  title: Health Check API
+  version: 1.0.0
+  description: API contracts for health check endpoints required for Kubernetes probes
+
+paths:
+  /health:
+    get:
+      summary: Frontend health check endpoint
+      description: Health check endpoint for frontend service, used by Kubernetes readiness/liveness probes
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-01-21T10:00:00Z"
+                  service:
+                    type: string
+                    example: "frontend"
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [unhealthy]
+                    example: "unhealthy"
+                  error:
+                    type: string
+                    example: "Database connection failed"
+
+  /api/health:
+    get:
+      summary: Backend health check endpoint
+      description: Health check endpoint for backend service, used by Kubernetes readiness/liveness probes
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-01-21T10:00:00Z"
+                  service:
+                    type: string
+                    example: "backend"
+                  dependencies:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        enum: [connected, disconnected]
+                        example: "connected"
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [unhealthy]
+                    example: "unhealthy"
+                  error:
+                    type: string
+                    example: "Database connection failed"
+                  failed_dependencies:
+                    type: array
+                    items:
+                      type: string
+                    example: ["database"]
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - service
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        service:
+          type: string
+          description: Name of the service
+        dependencies:
+          type: object
+          description: Status of dependent services
+        error:
+          type: string
+          description: Error message if service is unhealthy

@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://neondb_owner:npg_vOQXx8w0kRed@ep-rough-king-ahuvd09s-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_vOQXx8w0kRed
+      - DB_HOST=ep-rough-king-ahuvd09s-pooler.c-3.us-east-1.aws.neon.tech
+      - DB_PORT=5432
+      - DB_NAME=neondb
+      - SECRET_KEY=your-super-secret-key-change-this-in-production-1234567890
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - DB_ECHO=False
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-""}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-""}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8001
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    environment:
+      - API_URL=http://backend:8000
+    # Override the healthcheck that's causing issues
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  default:
+    driver: bridge

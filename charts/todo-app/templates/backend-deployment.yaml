@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-app.fullname" . }}-backend
+  labels:
+    {{- include "todo-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: todo-app
+  annotations:
+    deployment.kubernetes.io/revision: {{ .Release.Revision | quote }}
+    meta.helm.sh/release-name: {{ .Release.Name | quote }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace | quote }}
+    {{- if .Values.backend.annotations }}
+    {{- toYaml .Values.backend.annotations | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  {{- if .Values.backend.strategy }}
+  strategy:
+    {{- toYaml .Values.backend.strategy | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "todo-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      annotations:
+        checksum/values: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+        {{- if .Values.backend.podAnnotations }}
+        {{- toYaml .Values.backend.podAnnotations | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "todo-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: todo-app
+        {{- if .Values.backend.podLabels }}
+        {{- toYaml .Values.backend.podLabels | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.backend.priorityClassName }}
+      priorityClassName: {{ .Values.backend.priorityClassName }}
+      {{- end }}
+      {{- if .Values.backend.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.backend.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end }}
+      {{- else }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.backend.hostAliases }}
+      hostAliases:
+        {{- toYaml .Values.backend.hostAliases | nindent 6 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secretName | default (include "todo-app.fullname" .) }}
+                  key: database-url
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secretName | default (include "todo-app.fullname" .) }}
+                  key: openrouter-api-key
+            {{- if .Values.backend.extraEnv }}
+            {{- toYaml .Values.backend.extraEnv | nindent 12 }}
+            {{- end }}
+          {{- if .Values.backend.envFrom }}
+          envFrom:
+            {{- toYaml .Values.backend.envFrom | nindent 12 }}
+          {{- end }}
+          {{- if .Values.backend.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.backend.lifecycle | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            {{- if .Values.backend.livenessProbe }}
+            {{- toYaml .Values.backend.livenessProbe | nindent 12 }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            {{- if .Values.backend.readinessProbe }}
+            {{- toYaml .Values.backend.readinessProbe | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+            {{- if .Values.backend.startupProbe }}
+            {{- toYaml .Values.backend.startupProbe | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          {{- if .Values.backend.securityContext }}
+          securityContext:
+            {{- toYaml .Values.backend.securityContext | nindent 12 }}
+          {{- end }}
+      {{- if .Values.backend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.backend.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.affinity }}
+      affinity:
+        {{- toYaml .Values.backend.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.tolerations }}
+      tolerations:
+        {{- toYaml .Values.backend.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.backend.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.serviceAccountName }}
+      serviceAccountName: {{ .Values.backend.serviceAccountName }}
+      {{- end }}
+      {{- if .Values.backend.podSecurityContext }}
+      securityContext:
+        {{- toYaml .Values.backend.podSecurityContext | nindent 8 }}
+      {{- end }}

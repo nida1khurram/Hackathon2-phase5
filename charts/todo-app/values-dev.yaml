@@ -1,0 +1,28 @@
+# Development environment values
+global:
+  env: "development"
+  logLevel: "debug"
+  enableDebug: true
+
+frontend:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+
+backend:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+pdb:
+  enabled: false

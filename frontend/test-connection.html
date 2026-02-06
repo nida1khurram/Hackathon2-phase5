@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Backend Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Frontend-Backend Connection Test</h1>
+        
+        <div class="test-section info">
+            <h3>Configuration</h3>
+            <p><strong>API URL:</strong> <span id="api-url">http://localhost:8000</span></p>
+            <p><strong>Frontend URL:</strong> <span id="frontend-url">http://localhost:3000</span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>1. Backend Health Check</h3>
+            <button onclick="testHealth()">Test Health Endpoint</button>
+            <div id="health-result" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Authentication Test</h3>
+            <div>
+                <input type="email" id="test-email" placeholder="test@example.com" value="test@example.com">
+                <input type="password" id="test-password" placeholder="password" value="testpass123">
+            </div>
+            <button onclick="testRegister()">Test Register</button>
+            <button onclick="testLogin()">Test Login</button>
+            <div id="auth-result" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Tasks API Test</h3>
+            <button onclick="testTasks()">Test Tasks (requires login first)</button>
+            <div id="tasks-result" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. CORS Test</h3>
+            <button onclick="testCORS()">Test CORS Headers</button>
+            <div id="cors-result" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let authToken = null;
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.textContent = '';
+            
+            try {
+                log('health-result', 'Testing health endpoint...');
+                const response = await fetch(`${API_BASE}/health`);
+                
+                log('health-result', `Status: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('health-result', `Response: ${JSON.stringify(data, null, 2)}`);
+                    log('health-result', '✅ Health check passed!');
+                } else {
+                    log('health-result', '❌ Health check failed');
+                }
+            } catch (error) {
+                log('health-result', `❌ Error: ${error.message}`);
+                log('health-result', 'Make sure backend is running on port 8000');
+            }
+        }
+
+        async function testRegister() {
+            const resultDiv = document.getElementById('auth-result');
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+            
+            try {
+                log('auth-result', 'Testing registration...');
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                log('auth-result', `Status: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('auth-result', `✅ Registration successful: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    const errorData = await response.json();
+                    log('auth-result', `❌ Registration failed: ${JSON.stringify(errorData, null, 2)}`);
+                }
+            } catch (error) {
+                log('auth-result', `❌ Error: ${error.message}`);
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('auth-result');
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+            
+            try {
+                log('auth-result', 'Testing login...');
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                log('auth-result', `Status: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.access_token;
+                    log('auth-result', `✅ Login successful!`);
+                    log('auth-result', `Token: ${authToken.substring(0, 20)}...`);
+                    log('auth-result', `User: ${JSON.stringify(data.user, null, 2)}`);
+                } else {
+                    const errorData = await response.json();
+                    log('auth-result', `❌ Login failed: ${JSON.stringify(errorData, null, 2)}`);
+                }
+            } catch (error) {
+                log('auth-result', `❌ Error: ${error.message}`);
+            }
+        }
+
+        async function testTasks() {
+            const resultDiv = document.getElementById('tasks-result');
+            resultDiv.textContent = '';
+            
+            if (!authToken) {
+                log('tasks-result', '❌ No auth token. Please login first.');
+                return;
+            }
+            
+            try {
+                // Test GET tasks
+                log('tasks-result', 'Testing GET /tasks...');
+                let response = await fetch(`${API_BASE}/tasks`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log('tasks-result', `GET Status: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const tasks = await response.json();
+                    log('tasks-result', `✅ Found ${tasks.length} tasks`);
+                    
+                    // Test POST task
+                    log('tasks-result', 'Testing POST /tasks...');
+                    response = await fetch(`${API_BASE}/tasks`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            title: 'Test Task',
+                            description: 'This is a test task',
+                            completed: false
+                        })
+                    });
+                    
+                    log('tasks-result', `POST Status: ${response.status} ${response.statusText}`);
+                    
+                    if (response.ok) {
+                        const newTask = await response.json();
+                        log('tasks-result', `✅ Task created: ${JSON.stringify(newTask, null, 2)}`);
+                    } else {
+                        const errorData = await response.json();
+                        log('tasks-result', `❌ Task creation failed: ${JSON.stringify(errorData, null, 2)}`);
+                    }
+                } else {
+                    const errorData = await response.json();
+                    log('tasks-result', `❌ GET tasks failed: ${JSON.stringify(errorData, null, 2)}`);
+                }
+            } catch (error) {
+                log('tasks-result', `❌ Error: ${error.message}`);
+            }
+        }
+
+        async function testCORS() {
+            const resultDiv = document.getElementById('cors-result');
+            resultDiv.textContent = '';
+            
+            try {
+                log('cors-result', 'Testing CORS headers...');
+                const response = await fetch(`${API_BASE}/health`, {
+                    method: 'OPTIONS'
+                });
+                
+                log('cors-result', `Status: ${response.status} ${response.statusText}`);
+                
+                // Log CORS headers
+                const corsHeaders = [
+                    'Access-Control-Allow-Origin',
+                    'Access-Control-Allow-Methods',
+                    'Access-Control-Allow-Headers',
+                    'Access-Control-Allow-Credentials'
+                ];
+                
+                corsHeaders.forEach(header => {
+                    const value = response.headers.get(header);
+                    log('cors-result', `${header}: ${value || 'Not set'}`);
+                });
+                
+                log('cors-result', '✅ CORS test completed');
+            } catch (error) {
+                log('cors-result', `❌ Error: ${error.message}`);
+            }
+        }
+
+        // Auto-run health check on page load
+        window.onload = function() {
+            testHealth();
+        };
+    </script>
+</body>
+</html>
