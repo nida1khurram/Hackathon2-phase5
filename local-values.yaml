@@ -1,0 +1,38 @@
+# Local development values for Minikube deployment
+frontend:
+  enabled: true  # Enable frontend for local deployment
+  replicaCount: 1
+  image:
+    repository: "hac2-phase4-frontend"
+    tag: "latest"
+    pullPolicy: "IfNotPresent"
+  service:
+    type: NodePort  # Use NodePort for easy access from outside cluster
+    port: 80
+  env:
+    API_URL: "http://todo-backend:8000"
+
+backend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "hac2-phase4-backend"
+    tag: "latest"
+    pullPolicy: "IfNotPresent"
+  service:
+    type: ClusterIP
+    port: 8000
+
+# Database configuration - use SQLite for local development
+database:
+  url: "sqlite:///./todo_app_local.db"
+
+# Secrets for local development (properly encoded values)
+secrets:
+  openrouterApiKey: "sk-or-v1-1234567890abcdefghijklmnop"
+  jwtSecret: "very-secret-jwt-key-change-in-production"
+  encryptionKey: "1234567890abcdef1234567890abcdef"
+
+# Disable Pod Disruption Budget for local development
+pdb:
+  enabled: false
