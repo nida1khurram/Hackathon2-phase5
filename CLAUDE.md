@@ -264,6 +264,21 @@ The project includes several specialized agents for different development tasks:
 - **Purpose**: Implement an AI-powered chatbot interface for managing todos through natural language using MCP (Model Context Protocol) server architecture with OpenAI Agents SDK and OpenRouter integration
 - **Usage**: When implementing AI chatbot functionality, MCP server setup, OpenAI integration, conversation management, or natural language processing for todo management
 
+### Intermediate Todo Agent
+- **Name**: `intermediate-todo-agent`
+- **Purpose**: Implement intermediate-level todo features including priority management, search & filter capabilities, sorting, and advanced task operations
+- **Usage**: When adding organization and usability features like priorities, categories, search, filtering, bulk operations, and task details
+
+### Advanced Todo Agent
+- **Name**: `advanced-todo-agent`
+- **Purpose**: Implement advanced todo features including recurring tasks, due dates & reminders, AI-powered suggestions, collaboration features, and analytics
+- **Usage**: When implementing intelligent features like recurring tasks, notifications, AI insights, team collaboration, and data analytics
+
+### Debugging Agent
+- **Name**: `debugging-agent`
+- **Purpose**: Systematically identify, diagnose, and resolve software issues efficiently
+- **Usage**: When troubleshooting problems, analyzing errors, performing root cause analysis, or implementing fixes for complex issues
+
 ## Available Skills
 
 The project includes various specialized skills for different development tasks:
@@ -306,12 +321,47 @@ The project includes various specialized skills for different development tasks:
 - **stateless_chat_endpoint**: Create a stateless chat endpoint that persists conversation state to the database while maintaining server scalability
 - **chatkit_integration**: Integrate OpenAI ChatKit with your Todo application for conversational AI interface
 
+### Intermediate Todo Skills
+- **intermediate_todo_features**: Implement intermediate-level todo features including priority management, search & filtering, sorting, and advanced task operations like bulk actions and detailed task views
+- **priority_category_management**: Implement priority levels (high/medium/low) and category/tag systems for organizing tasks with visual indicators
+- **search_filter_implementation**: Develop search capability across task attributes and create filters for status, priority, date, or category with optimized performance
+
+### Advanced Todo Skills
+- **advanced_todo_features**: Implement advanced todo capabilities including recurring tasks, due dates & reminders, AI-powered suggestions, collaboration features, and analytics
+- **recurring_tasks_system**: Implement smart recurrence patterns (daily, weekly, monthly, yearly) with exception handling and complex rule support
+- **analytics_dashboard**: Create dashboard showing task completion statistics, productivity patterns, and trend visualizations with export capabilities
+
+### Debugging Skills
+- **debugging_skill**: Systematically identify, diagnose, and resolve software issues using structured debugging methodologies and tools
+- **issue_analysis**: Analyze error messages, logs, and stack traces to identify root causes and distinguish between symptoms and underlying problems
+- **solution_implementation**: Develop targeted fixes for identified issues, implement preventive measures, and verify fix effectiveness
+
 ## Available Agents for Phase IV
 
 - @agents/docker-agent.md - Docker containerization expert
 - @agents/helm-agent.md - Helm chart specialist
 - @agents/kubernetes-agent.md - K8s deployment expert
 - @agents/devops-agent.md - AI DevOps orchestrator
+
+## Available Agents for Intermediate and Advanced Todo Features
+
+- @agents/intermediate-todo-agent.md - Intermediate todo features implementation expert
+- @agents/advanced-todo-agent.md - Advanced todo features and AI capabilities expert
+- @agents/debugging-agent.md - Debugging and troubleshooting specialist
+
+## Available Agents for Phase V
+
+- @agents/cloud-kubernetes-agent.md - Cloud K8s deployment expert (DOKS/GKE/AKS)
+- @agents/event-driven-architecture-agent.md - Event-driven systems with Kafka expert
+- @agents/dapr-expert-agent.md - Dapr implementation specialist
+- @agents/ci-cd-expert-agent.md - CI/CD pipeline expert with GitHub Actions
+- @agents/monitoring-expert-agent.md - Monitoring and logging configuration specialist
+
+## Available Skills for Intermediate and Advanced Todo Features
+
+- @skills/intermediate-todo-features.md - Implementation of priority management, search & filtering, and advanced task operations
+- @skills/advanced-todo-features.md - Implementation of recurring tasks, AI suggestions, collaboration, and analytics
+- @skills/debugging-skill.md - Systematic debugging and troubleshooting methodology
 
 ## Available Skills for Phase IV
 
@@ -323,11 +373,75 @@ The project includes various specialized skills for different development tasks:
 - @skills/kubectl-ai-wrapper.md - Natural language K8s ops
 - @skills/image-optimizer.md - Docker image optimization
 
+## Available Skills for Phase V
+
+- @skills/event_driven_architecture_with_kafka.md - Implementation of event-driven architecture using Apache Kafka
+- @skills/dapr_implementation.md - Implementation of Dapr for distributed application runtime
+- @skills/minikube_deployment.md - Deployment to Minikube with full Dapr capabilities
+- @skills/cloud_kubernetes_deployment.md - Deployment to cloud Kubernetes (DOKS/GKE/AKS) with full Dapr capabilities
+- @skills/redpanda_cloud_kafka_setup.md - Setup of Kafka on Redpanda Cloud
+- @skills/ci_cd_pipeline_github_actions.md - CI/CD pipeline implementation using GitHub Actions
+- @skills/monitoring_logging_configuration.md - Comprehensive monitoring and logging configuration
+
 ## Phase IV Workflow
 
 Follow @workflows/phase-iv-deployment.md for complete orchestration.
 
-## Pre-Action Checklist for Phase IV
+## Phase V: Advanced Cloud Deployment
+
+Follow @workflows/phase-v-deployment.md for complete orchestration of advanced cloud deployment including:
+- Event-driven architecture with Kafka
+- Dapr implementation with full capabilities (Pub/Sub, State, Bindings, Secrets, Service Invocation)
+- Local deployment to Minikube with Dapr
+- Cloud deployment to DOKS/GKE/AKS with Dapr
+- Kafka on Redpanda Cloud setup
+- CI/CD pipeline with GitHub Actions
+- Monitoring and logging configuration
+
+## Using Skills to Complete Phase V
+
+To complete Phase V using the available skills, follow this sequence:
+
+1. **Implement Advanced Features** (if not already completed):
+   - Use @skills/advanced-todo-features.md to implement recurring tasks, due dates & reminders
+
+2. **Set up Event-Driven Architecture**:
+   - Use @skills/event_driven_architecture_with_kafka.md to implement event-driven architecture with Kafka
+
+3. **Implement Dapr**:
+   - Use @skills/dapr_implementation.md to implement full Dapr capabilities (Pub/Sub, State, Bindings, Secrets, Service Invocation)
+
+4. **Deploy Locally to Minikube**:
+   - Use @skills/minikube_deployment.md to deploy to Minikube with full Dapr capabilities
+
+5. **Deploy to Cloud Kubernetes**:
+   - Use @skills/cloud_kubernetes_deployment.md to deploy to cloud Kubernetes (DOKS/GKE/AKS) with full Dapr capabilities
+
+6. **Set up Kafka on Redpanda Cloud**:
+   - Use @skills/redpanda_cloud_kafka_setup.md to set up Kafka on Redpanda Cloud
+
+7. **Configure CI/CD Pipeline**:
+   - Use @skills/ci_cd_pipeline_github_actions.md to set up CI/CD pipeline with GitHub Actions
+
+8. **Configure Monitoring and Logging**:
+   - Use @skills/monitoring_logging_configuration.md to configure monitoring and logging
+
+## Project Completion Sequence
+
+To complete the entire Phase V project using the skills:
+
+1. Activate @agents/advanced-todo-agent.md and use @skills/advanced-todo-features.md
+2. Activate @agents/event-driven-architecture-agent.md and use @skills/event_driven_architecture_with_kafka.md
+3. Activate @agents/dapr-expert-agent.md and use @skills/dapr_implementation.md
+4. Activate @agents/kubernetes-agent.md and use @skills/minikube_deployment.md for local deployment
+5. Activate @agents/cloud-kubernetes-agent.md and use @skills/cloud_kubernetes_deployment.md for cloud deployment
+6. Activate @agents/event-driven-architecture-agent.md and use @skills/redpanda_cloud_kafka_setup.md
+7. Activate @agents/ci-cd-expert-agent.md and use @skills/ci_cd_pipeline_github_actions.md
+8. Activate @agents/monitoring-expert-agent.md and use @skills/monitoring_logging_configuration.md
+
+Following this sequence will ensure all Phase V requirements from the p5 documentation are met using the available skills.
+
+## Pre-Action Checklist for Phase IV and V
 
 Before ANY action:
 
@@ -350,3 +464,25 @@ Before ANY action:
 ### Deployment
 
 "Activate @agents/kubernetes-agent.md and deploy to Minikube using @skills/minikube-deployer.md"
+
+## Phase V Usage Examples
+
+### Event-Driven Architecture
+
+"Activate @agents/event-driven-architecture-agent.md and implement event-driven architecture using @skills/event_driven_architecture_with_kafka.md"
+
+### Dapr Implementation
+
+"Activate @agents/dapr-expert-agent.md and implement full Dapr capabilities using @skills/dapr_implementation.md"
+
+### Cloud Deployment
+
+"Activate @agents/cloud-kubernetes-agent.md and deploy to cloud Kubernetes using @skills/cloud_kubernetes_deployment.md"
+
+### CI/CD Pipeline
+
+"Activate @agents/ci-cd-expert-agent.md and set up CI/CD pipeline using @skills/ci_cd_pipeline_github_actions.md"
+
+### Monitoring
+
+"Activate @agents/monitoring-expert-agent.md and configure monitoring using @skills/monitoring_logging_configuration.md"

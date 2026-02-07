@@ -2,12 +2,14 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select
 from typing import List
+from datetime import datetime, timedelta
 from ..database import get_session
 from ..models.task import Task
 from ..models.user import User
 from ..schemas.task import TaskCreate, TaskRead, TaskUpdate
 from ..middleware.auth import get_current_user
 from ..services.task_service import create_task, get_tasks, get_task, get_task_for_user, update_task, delete_task
+from ..services.reminder_service import ReminderService
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -39,7 +41,7 @@ def read_tasks(
         )
 
 @router.post("/", response_model=TaskRead)
-def create_task_endpoint(
+async def create_task_endpoint(
     task: TaskCreate,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
@@ -54,7 +56,7 @@ def create_task_endpoint(
             **task.dict(),
             user_id=current_user.id
         )
-        created_task = create_task(session, db_task)
+        created_task = await create_task(session, db_task)
         logger.info(f"Successfully created task {created_task.id} for user {current_user.id}")
         return created_task
     except Exception as e:
@@ -159,4 +161,58 @@ def delete_task_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while deleting the task"
+        )
+
+
+@router.get("/reminders/upcoming", response_model=List[TaskRead])
+def get_upcoming_reminders(
+    hours_ahead: int = Query(24, ge=1, le=168),  # 1 week max
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Get tasks with due dates within the specified timeframe for the current user
+    """
+    logger.info(f"User {current_user.id} requesting upcoming reminders within {hours_ahead} hours")
+    try:
+        reminder_service = ReminderService()
+        upcoming_tasks = reminder_service.get_upcoming_reminders(session, current_user.id, hours_ahead)
+        logger.info(f"Successfully retrieved {len(upcoming_tasks)} upcoming tasks for user {current_user.id}")
+        return upcoming_tasks
+    except Exception as e:
+        logger.error(f"Error retrieving upcoming tasks for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while retrieving upcoming tasks"
+        )
+
+
+@router.get("/due_soon", response_model=List[TaskRead])
+def get_due_soon_tasks(
+    hours_ahead: int = Query(24, ge=1, le=168),  # 1 week max
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Get tasks that are due soon (within specified hours) for the current user
+    """
+    logger.info(f"User {current_user.id} requesting tasks due within {hours_ahead} hours")
+    try:
+        cutoff_time = datetime.utcnow() + timedelta(hours=hours_ahead)
+        
+        statement = select(Task).where(
+            Task.user_id == current_user.id,
+            Task.due_date != None,
+            Task.due_date <= cutoff_time,
+            Task.completed == False
+        ).order_by(Task.due_date.asc())
+        
+        due_soon_tasks = session.exec(statement).all()
+        logger.info(f"Successfully retrieved {len(due_soon_tasks)} tasks due soon for user {current_user.id}")
+        return due_soon_tasks
+    except Exception as e:
+        logger.error(f"Error retrieving due soon tasks for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while retrieving due soon tasks"
         )

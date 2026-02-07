@@ -1,0 +1,46 @@
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "taskflow-frontend"
+    tag: "latest"
+    pullPolicy: "Never"  # Use local images
+  service:
+    type: NodePort
+    port: 80
+  resources:
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+
+backend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "taskflow-backend"
+    tag: "latest"
+    pullPolicy: "Never"  # Use local images
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+database:
+  url: "postgresql://neondb_owner:npg_vOQXx8w0kRed@ep-rough-king-ahuvd09s-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+secrets:
+  openrouterApiKey: "c2stb3J2MTEyMzQ1Njc4OTBhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5eno="
+  jwtSecret: "dmVyeS1zZWNyZXQtand0LWtleS1jaGFuZ2UtaW4tcHJvZHVjdGlvbg=="
+  encryptionKey: "MTIzNDU2Nzg5MGFiY2RlZjEyMzQ1Njc4OTBhYmNkZWY="
+
+pdb:
+  enabled: false

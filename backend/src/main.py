@@ -13,6 +13,8 @@ from .models import Base
 from .middleware.validation import ValidationMiddleware
 from .middleware.security import SecurityHeadersMiddleware
 from .logging_config import setup_logging
+from .services.reminder_service import ReminderService
+from sqlmodel import Session
 
 # Set up centralized logging
 setup_logging(log_level="INFO")
@@ -25,6 +27,19 @@ logger.info("Rate limiter initialized")
 # Create database tables
 Base.metadata.create_all(bind=engine)
 logger.info("Database tables created successfully")
+
+# Initialize and start reminder scheduler
+def start_reminder_scheduler():
+    """Initialize and start the reminder scheduler"""
+    try:
+        reminder_service = ReminderService()
+        reminder_service.start_scheduler()
+        logger.info("Reminder scheduler initialized and started")
+    except Exception as e:
+        logger.error(f"Error initializing reminder scheduler: {str(e)}")
+
+# Start the reminder scheduler
+start_reminder_scheduler()
 
 app = FastAPI(title="Todo API", version="1.0.0")
 

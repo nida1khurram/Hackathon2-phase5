@@ -1,13 +1,16 @@
 import logging
 from sqlmodel import Session, select
 from typing import List
+from datetime import datetime
 from ..models.task import Task
 from ..models.user import User
+from .reminder_service import ReminderService
+from .kafka_service import KafkaService
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-def create_task(session: Session, task: Task) -> Task:
+async def create_task(session: Session, task: Task) -> Task:
     """
     Create a new task
     """
@@ -16,6 +19,25 @@ def create_task(session: Session, task: Task) -> Task:
         session.add(task)
         session.commit()
         session.refresh(task)
+        
+        # Schedule reminders if due date is set
+        if task.due_date:
+            reminder_service = ReminderService()
+            reminder_service.schedule_reminders_for_task(task)
+        
+        # Schedule recurring tasks if applicable
+        if task.recurrence_rule:
+            reminder_service = ReminderService()
+            reminder_service.schedule_recurring_task(task)
+        
+        # Publish task created event to Kafka
+        try:
+            kafka_service = KafkaService()
+            task_dict = task.dict() if hasattr(task, 'dict') else {c.name: getattr(task, c.name) for c in task.__table__.columns}
+            await kafka_service.send_task_event('created', task_dict, key=str(task.id))
+        except Exception as e:
+            logger.error(f"Error publishing task created event: {str(e)}")
+        
         logger.info(f"Successfully created task with ID: {task.id}")
         return task
     except Exception as e:
@@ -139,15 +161,42 @@ def check_task_ownership(session: Session, task_id: int, user_id: int) -> bool:
         logger.error(f"Error checking ownership of task {task_id} for user {user_id}: {str(e)}")
         raise
 
-def update_task(session: Session, task: Task) -> Task:
+async def update_task(session: Session, task: Task) -> Task:
     """
     Update a task
     """
     logger.info(f"Updating task with ID: {task.id}")
     try:
+        # Get the original task to check if due_date or recurrence changed
+        original_task = session.get(Task, task.id)
+        original_due_date = original_task.due_date if original_task else None
+        original_recurrence_rule = original_task.recurrence_rule if original_task else None
+        
         session.add(task)
         session.commit()
         session.refresh(task)
+        
+        # Handle reminder scheduling if due date changed
+        if original_due_date != task.due_date:
+            reminder_service = ReminderService()
+            reminder_service.schedule_reminders_for_task(task)
+        
+        # Handle recurrence scheduling if recurrence rule changed
+        if original_recurrence_rule != task.recurrence_rule:
+            reminder_service = ReminderService()
+            if original_recurrence_rule:
+                reminder_service.cancel_recurring_task(task.id)
+            if task.recurrence_rule:
+                reminder_service.schedule_recurring_task(task)
+        
+        # Publish task updated event to Kafka
+        try:
+            kafka_service = KafkaService()
+            task_dict = task.dict() if hasattr(task, 'dict') else {c.name: getattr(task, c.name) for c in task.__table__.columns}
+            await kafka_service.send_task_event('updated', task_dict, key=str(task.id))
+        except Exception as e:
+            logger.error(f"Error publishing task updated event: {str(e)}")
+        
         logger.info(f"Successfully updated task with ID: {task.id}")
         return task
     except Exception as e:
@@ -162,6 +211,11 @@ def delete_task(session: Session, task_id: int) -> bool:
     try:
         task = session.get(Task, task_id)
         if task:
+            # Cancel any scheduled reminders for this task
+            reminder_service = ReminderService()
+            reminder_service.cancel_reminders_for_task(task_id)
+            reminder_service.cancel_recurring_task(task_id)
+            
             session.delete(task)
             session.commit()
             logger.info(f"Successfully deleted task with ID: {task_id}")

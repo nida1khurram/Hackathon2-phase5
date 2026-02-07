@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     better_auth_secret: str = os.getenv("BETTER_AUTH_SECRET", "")
     better_auth_url: str = os.getenv("BETTER_AUTH_URL", "http://localhost:3000")
 
+    # Kafka settings
+    kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    kafka_security_protocol: str = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+    kafka_sasl_mechanism: str = os.getenv("KAFKA_SASL_MECHANISM", "")
+    kafka_sasl_plain_username: str = os.getenv("KAFKA_SASL_PLAIN_USERNAME", "")
+    kafka_sasl_plain_password: str = os.getenv("KAFKA_SASL_PLAIN_PASSWORD", "")
+
     class Config:
         env_file = ".env"
         extra = "ignore"  # Ignore extra fields in .env that don't match class attributes
